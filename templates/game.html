@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Page</title>
+    <style>
+        .team-table {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+        }
+        .team-header {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game Page</h1>
+    <div id="teams"></div>
+
+    <!-- Add this hidden input to store the is_creator value -->
+    <input type="hidden" id="isCreatorInput" value="{{ 'true' if is_creator else 'false' }}">
+
+    <script>
+        // Get the isCreator value from the hidden input
+        const isCreator = document.getElementById('isCreatorInput').value === 'true';
+
+        // JavaScript function for sorting teams
+        async function sortTeams() {
+            try {
+                const response = await fetch("/sort");
+                const result = await response.json();
+                displayTeams(result.teams);
+            } catch (error) {
+                console.error("Error sorting teams:", error);
+            }
+        }
+
+        // JavaScript function for fetching sorted teams
+        async function getTeams() {
+            try {
+                const response = await fetch("/get_teams");
+                const result = await response.json();
+                displayTeams(result.teams);
+            } catch (error) {
+                console.error("Error getting teams:", error);
+            }
+        }
+
+        // Function to display teams in the DOM
+        function displayTeams(teams) {
+            const teamsDiv = document.getElementById("teams");
+            teamsDiv.innerHTML = "";  // Clear previous content
+
+            teams.forEach((team, index) => {
+                const table = document.createElement("table");
+                table.classList.add("team-table");
+
+                const header = document.createElement("tr");
+                header.classList.add("team-header");
+                const headerCell = document.createElement("td");
+                headerCell.colSpan = "3";
+                headerCell.innerText = `Team ${index + 1}`;
+                header.appendChild(headerCell);
+                table.appendChild(header);
+
+                team.forEach(member => {
+                    const row = document.createElement("tr");
+                    const cell = document.createElement("td");
+                    cell.innerText = member;
+                    row.appendChild(cell);
+                    table.appendChild(row);
+                });
+
+                teamsDiv.appendChild(table);
+            });
+        }
+
+        // Automatically refresh teams for non-creators
+        if (!isCreator) {
+            window.addEventListener("load", function() {
+                setInterval(getTeams, 5000);  // Refresh every 5 seconds
+            });
+        }
+    </script>
+
+    <!-- Show "Sort Teams" button only for the creator -->
+    {% if is_creator %}
+    <button onclick="sortTeams()">Sort Teams</button>
+    {% endif %}
+</body>
+</html>

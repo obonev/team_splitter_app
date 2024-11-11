@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Sorting App</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #001f3f; /* Navy blue background */
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            background-color: #FA8072; /* Salmon color */
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+        }
+        .input-box {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+        }
+        .input-box::placeholder {
+            color: gray;
+        }
+        .button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #001f3f; /* Navy blue */
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #001a36;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Team Sorting App</h2>
+        <form id="addForm">
+            <input type="text" name="name" class="input-box" placeholder="Enter Name Here..." required>
+            <button type="submit" class="button">Add Participant</button>
+        </form>
+        <button onclick="sortTeams()" class="button">Sort Teams</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        // Function to submit the name form
+        document.getElementById("addForm").onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch("/add", { method: "POST", body: formData });
+            const result = await response.json();
+            document.getElementById("message").innerText = result.message;
+        };
+
+        // Function to sort teams
+        async function sortTeams() {
+            const response = await fetch("/sort");
+            const result = await response.json();
+            if (result.teams) {
+                document.getElementById("message").innerText = JSON.stringify(result.teams);
+            } else {
+                document.getElementById("message").innerText = result.error;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -5,40 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Page</title>
     <style>
-        .team-table {
-            border: 1px solid #ccc;
-            margin: 10px;
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #001f3f;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .container {
+            background-color: #FA8072;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+        .input-box {
+            width: 100%;
             padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+        }
+        .input-box::placeholder {
+            color: gray;
+        }
+        .button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #001f3f;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #001a36;
+        }
+        .teams-container {
+            background-color: #FA8072;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            margin-top: 20px;
+        }
+        .team-table {
+            width: 100%;
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 5px;
+            overflow: hidden;
         }
         .team-header {
+            background-color: #001f3f;
+            color: white;
+            padding: 10px;
+            text-align: center;
             font-weight: bold;
-            background-color: #f0f0f0;
+        }
+        .team-member {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .team-member:last-child {
+            border-bottom: none;
+        }
+        #message {
+            color: #001f3f;
+            margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Game Page</h1>
-    <div id="teams"></div>
-
-    <!-- Add this hidden input to store the is_creator value -->
     <input type="hidden" id="isCreatorInput" value="{{ 'true' if is_creator else 'false' }}">
+    
+    <div class="container">
+        <h2>Team Sorting App</h2>
+        <form id="addForm">
+            <input type="text" name="name" class="input-box" placeholder="Enter Name Here..." required>
+            <button type="submit" class="button">Add Participant</button>
+        </form>
+        {% if is_creator %}
+        <button onclick="sortTeams()" class="button">Sort Teams</button>
+        {% endif %}
+        <div id="message"></div>
+    </div>
+
+    <div class="teams-container" id="teams"></div>
 
     <script>
-        // Get the isCreator value from the hidden input
         const isCreator = document.getElementById('isCreatorInput').value === 'true';
 
-        // JavaScript function for sorting teams
+        // Function to submit the name form
+        document.getElementById("addForm").onsubmit = async function(event) {
+            event.preventDefault();
+            try {
+                const formData = new FormData(this);
+                const response = await fetch("/add", { method: "POST", body: formData });
+                const result = await response.json();
+                document.getElementById("message").innerText = result.message;
+                this.reset(); // Clear the form
+                getTeams(); // Refresh teams display
+            } catch (error) {
+                console.error("Error adding participant:", error);
+                document.getElementById("message").innerText = "Error adding participant";
+            }
+        };
+
         async function sortTeams() {
             try {
                 const response = await fetch("/sort");
                 const result = await response.json();
                 displayTeams(result.teams);
+                document.getElementById("message").innerText = "Teams sorted successfully!";
             } catch (error) {
                 console.error("Error sorting teams:", error);
+                document.getElementById("message").innerText = "Error sorting teams";
             }
         }
 
-        // JavaScript function for fetching sorted teams
         async function getTeams() {
             try {
                 const response = await fetch("/get_teams");
@@ -49,20 +145,23 @@
             }
         }
 
-        // Function to display teams in the DOM
         function displayTeams(teams) {
             const teamsDiv = document.getElementById("teams");
             teamsDiv.innerHTML = "";  // Clear previous content
+
+            if (!teams || teams.length === 0) {
+                return;
+            }
 
             teams.forEach((team, index) => {
                 const table = document.createElement("table");
                 table.classList.add("team-table");
 
                 const header = document.createElement("tr");
-                header.classList.add("team-header");
                 const headerCell = document.createElement("td");
                 headerCell.colSpan = "3";
                 headerCell.innerText = `Team ${index + 1}`;
+                headerCell.classList.add("team-header");
                 header.appendChild(headerCell);
                 table.appendChild(header);
 
@@ -70,6 +169,7 @@
                     const row = document.createElement("tr");
                     const cell = document.createElement("td");
                     cell.innerText = member;
+                    cell.classList.add("team-member");
                     row.appendChild(cell);
                     table.appendChild(row);
                 });
@@ -78,17 +178,13 @@
             });
         }
 
+        // Initial teams fetch
+        getTeams();
+
         // Automatically refresh teams for non-creators
         if (!isCreator) {
-            window.addEventListener("load", function() {
-                setInterval(getTeams, 5000);  // Refresh every 5 seconds
-            });
+            setInterval(getTeams, 5000);  // Refresh every 5 seconds
         }
     </script>
-
-    <!-- Show "Sort Teams" button only for the creator -->
-    {% if is_creator %}
-    <button onclick="sortTeams()">Sort Teams</button>
-    {% endif %}
 </body>
 </html>

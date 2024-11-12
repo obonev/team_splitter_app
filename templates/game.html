@@ -23,6 +23,19 @@
             text-align: center;
             width: 300px;
             margin-bottom: 20px;
+            position: relative;
+        }
+        .game-id-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #001f3f;
+            color: white;
+            padding: 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-size: 18px;
         }
         .input-box {
             width: 100%;
@@ -33,9 +46,6 @@
             font-size: 16px;
             color: #333;
             text-align: center;
-        }
-        .input-box::placeholder {
-            color: gray;
         }
         .button {
             width: 100%;
@@ -48,15 +58,15 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .button:hover {
-            background-color: #001a36;
+        .button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
         }
         .teams-container {
             background-color: #FA8072;
             padding: 20px;
             border-radius: 8px;
             width: 300px;
-            margin-top: 20px;
         }
         .team-table {
             width: 100%;
@@ -77,28 +87,34 @@
             text-align: center;
             border-bottom: 1px solid #eee;
         }
-        .team-member:last-child {
-            border-bottom: none;
-        }
         #message {
             color: #001f3f;
             margin-top: 10px;
             font-weight: bold;
+            min-height: 20px;
+        }
+        .error-message {
+            color: #cc0000;
         }
     </style>
 </head>
 <body>
     <input type="hidden" id="isCreatorInput" value="{{ 'true' if is_creator else 'false' }}">
+    <input type="hidden" id="hasSubmittedInput" value="{{ 'true' if has_submitted else 'false' }}">
     
     <div class="container">
-        <h2>Team Sorting App</h2>
+        <div class="game-id-banner">Game ID: {{ game_id }}</div>
+        <h2 style="margin-top: 30px">Team Sorting App</h2>
+        
         <form id="addForm">
-            <input type="text" name="name" class="input-box" placeholder="Enter Name Here..." required>
-            <button type="submit" class="button">Add Participant</button>
+            <input type="text" name="name" class="input-box" placeholder="Enter Name Here..." required {% if has_submitted %}disabled{% endif %}>
+            <button type="submit" class="button" id="submitButton" {% if has_submitted %}disabled{% endif %}>Add Participant</button>
         </form>
+        
         {% if is_creator %}
         <button onclick="sortTeams()" class="button">Sort Teams</button>
         {% endif %}
+        
         <div id="message"></div>
     </div>
 
@@ -106,40 +122,88 @@
 
     <script>
         const isCreator = document.getElementById('isCreatorInput').value === 'true';
+        const hasSubmitted = document.getElementById('hasSubmittedInput').value === 'true';
+        let currentTeamNumber = null;
 
-        // Function to submit the name form
         document.getElementById("addForm").onsubmit = async function(event) {
             event.preventDefault();
+            const submitButton = document.getElementById("submitButton");
+            const nameInput = document.querySelector('input[name="name"]');
+            const messageDiv = document.getElementById("message");
+            
+            // Log form data to verify
+            console.log("Name Input Value:", nameInput.value);
+
+            // Reset and disable form elements
+            messageDiv.innerText = "Submitting...";
+            messageDiv.className = "";
+            submitButton.disabled = true;
+            nameInput.disabled = true;
+
             try {
                 const formData = new FormData(this);
-                const response = await fetch("/add", { method: "POST", body: formData });
+                
+                // Log FormData content before sending
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+
+                const response = await fetch("/add", {
+                    method: "POST",
+                    body: formData
+                });
                 const result = await response.json();
-                document.getElementById("message").innerText = result.message;
-                this.reset(); // Clear the form
-                getTeams(); // Refresh teams display
+
+                if (response.ok) {
+                    messageDiv.innerText = result.message;
+                    await getTeams(); // Refresh team display
+                } else {
+                    messageDiv.innerText = result.error || "Error adding participant";
+                    messageDiv.className = "error-message";
+                    submitButton.disabled = false;
+                    nameInput.disabled = false;
+                }
             } catch (error) {
                 console.error("Error adding participant:", error);
-                document.getElementById("message").innerText = "Error adding participant";
+                messageDiv.innerText = "Error connecting to server. Please try again.";
+                messageDiv.className = "error-message";
+                submitButton.disabled = false;
+                nameInput.disabled = false;
             }
         };
 
         async function sortTeams() {
+            const messageDiv = document.getElementById("message");
             try {
                 const response = await fetch("/sort");
                 const result = await response.json();
-                displayTeams(result.teams);
-                document.getElementById("message").innerText = "Teams sorted successfully!";
+                
+                if (response.ok) {
+                    displayTeams(result.teams);
+                    messageDiv.innerText = "Teams sorted successfully!";
+                    messageDiv.className = "";
+                } else {
+                    messageDiv.innerText = result.error || "Error sorting teams";
+                    messageDiv.className = "error-message";
+                }
             } catch (error) {
                 console.error("Error sorting teams:", error);
-                document.getElementById("message").innerText = "Error sorting teams";
+                messageDiv.innerText = "Error connecting to server. Please try again.";
+                messageDiv.className = "error-message";
             }
         }
 
         async function getTeams() {
             try {
                 const response = await fetch("/get_teams");
-                const result = await response.json();
-                displayTeams(result.teams);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (!isCreator && data.team_number) {
+                        currentTeamNumber = data.team_number;
+                    }
+                    displayTeams(data.teams);
+                }
             } catch (error) {
                 console.error("Error getting teams:", error);
             }
@@ -147,7 +211,7 @@
 
         function displayTeams(teams) {
             const teamsDiv = document.getElementById("teams");
-            teamsDiv.innerHTML = "";  // Clear previous content
+            teamsDiv.innerHTML = "";
 
             if (!teams || teams.length === 0) {
                 return;
@@ -160,7 +224,11 @@
                 const header = document.createElement("tr");
                 const headerCell = document.createElement("td");
                 headerCell.colSpan = "3";
-                headerCell.innerText = `Team ${index + 1}`;
+                
+                // For participants, show their team number instead of index + 1
+                const teamNumber = !isCreator ? currentTeamNumber : (index + 1);
+                headerCell.innerText = `Team ${teamNumber}`;
+                
                 headerCell.classList.add("team-header");
                 header.appendChild(headerCell);
                 table.appendChild(header);

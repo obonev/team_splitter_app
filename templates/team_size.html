@@ -5,21 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Team Size</title>
     <style>
-        /* Styling similar to previous templates */
-        /* Use same styling approach as other templates for consistency */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #001f3f;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            background-color: #FA8072;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+        }
+        .select-box {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            background-color: white;
+        }
+        .button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #001f3f;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #001a36;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #001f3f;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Select Team Size</h1>
+        <h2>Select Team Size</h2>
         <form action="/set_team_size" method="post">
             <label for="team_size">Choose team size:</label>
-            <select name="team_size" id="team_size">
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
+            <select name="team_size" id="team_size" class="select-box">
+                <option value="2">2 People per Team</option>
+                <option value="3">3 People per Team</option>
+                <option value="4">4 People per Team</option>
+                <option value="5">5 People per Team</option>
             </select>
-            <button type="submit">Set Team Size</button>
+            <button type="submit" class="button">Set Team Size</button>
         </form>
     </div>
 </body>

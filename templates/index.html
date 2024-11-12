@@ -21,19 +21,6 @@
             text-align: center;
             width: 300px;
         }
-        .input-box {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            color: #333;
-            text-align: center;
-        }
-        .input-box::placeholder {
-            color: gray;
-        }
         .button {
             width: 100%;
             padding: 10px;
@@ -52,35 +39,14 @@
 </head>
 <body>
     <div class="container">
-        <h2>Team Sorting App</h2>
-        <form id="addForm">
-            <input type="text" name="name" class="input-box" placeholder="Enter Name Here..." required>
-            <button type="submit" class="button">Add Participant</button>
+        <h2>Welcome to Team Sorting App</h2>
+        <form action="/create" method="post">
+            <button type="submit" class="button">Create a New Game</button>
         </form>
-        <button onclick="sortTeams()" class="button">Sort Teams</button>
-        <div id="message"></div>
+        <form action="/join" method="post">
+            <input type="text" name="game_id" placeholder="Enter Game ID" required>
+            <button type="submit" class="button">Join Existing Game</button>
+        </form>
     </div>
-
-    <script>
-        // Function to submit the name form
-        document.getElementById("addForm").onsubmit = async function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            const response = await fetch("/add", { method: "POST", body: formData });
-            const result = await response.json();
-            document.getElementById("message").innerText = result.message;
-        };
-
-        // Function to sort teams
-        async function sortTeams() {
-            const response = await fetch("/sort");
-            const result = await response.json();
-            if (result.teams) {
-                document.getElementById("message").innerText = JSON.stringify(result.teams);
-            } else {
-                document.getElementById("message").innerText = result.error;
-            }
-        }
-    </script>
 </body>
 </html>

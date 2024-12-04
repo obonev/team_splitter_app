@@ -6,7 +6,7 @@
     <title>Welcome to Team Sorting App</title>
     <style>
         body {
-            background-color: navy;
+            background-color: #001f3f;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -35,7 +35,7 @@
             font-size: 16px;
         }
         button {
-            background-color: navy;
+            background-color: #001f3f;
             color: white;
             cursor: pointer;
         }
@@ -43,6 +43,7 @@
             opacity: 0.8;
         }
         input[type="text"] {
+            width: 93%;
             background-color: #f0e0e0;
             color: #333;
         }
@@ -50,15 +51,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Team Sorting App</h1>
-        
-        <form action="/create" method="post">
-            <button type="submit">Create</button>
-        </form>
+        <h1>Welcome to the Team Sorting App</h1>
         
         <form action="/join" method="post">
             <input type="text" name="game_id" placeholder="Enter ID to Join" required>
             <button type="submit">Join</button>
+        </form>
+
+        <form action="/create" method="post">
+            <button type="submit">Create</button>
         </form>
         
         {% if error %}

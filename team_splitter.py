@@ -200,11 +200,21 @@ def sort_teams():
         participants = games[game_id]['participants']
         team_size = games[game_id]['team_size']
 
-        if len(participants) < team_size:
-            return jsonify({"error": "Not enough participants to form teams"}), 400
+        if len(participants) == 0:
+            return jsonify({"error": "No participants to sort"}), 400
 
+        # Shuffle participants to ensure randomness
         random.shuffle(participants)
-        games[game_id]['teams'] = [participants[i:i + team_size] for i in range(0, len(participants), team_size)]
+
+        # Initialize empty teams
+        num_teams = max(1, len(participants) // team_size + (1 if len(participants) % team_size != 0 else 0))
+        teams = [[] for _ in range(num_teams)]
+
+        # Distribute participants across teams
+        for i, participant in enumerate(participants):
+            teams[i % num_teams].append(participant)
+
+        games[game_id]['teams'] = teams
 
         return jsonify({"teams": games[game_id]['teams']})
     

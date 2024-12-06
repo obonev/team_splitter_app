@@ -89,9 +89,11 @@
 </head>
 <body>
     <input type="hidden" id="isCreatorInput" value="{{ 'true' if is_creator else 'false' }}">
+    <input type="hidden" id="gameId" value="{{ game_id }}">
     
     <div class="container">
         <h2>Team Sorting App</h2>
+        <p>Game ID: <strong>{{ game_id }}</strong></p>
         <form id="addForm">
             <input type="text" name="name" class="input-box" placeholder="Enter Name Here..." required>
             <button type="submit" class="button">Add Participant</button>
@@ -106,6 +108,7 @@
 
     <script>
         const isCreator = document.getElementById('isCreatorInput').value === 'true';
+        const gameId = document.getElementById('gameId').value;
 
         // Function to submit the name form
         document.getElementById("addForm").onsubmit = async function(event) {

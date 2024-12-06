@@ -111,18 +111,23 @@
         const gameId = document.getElementById('gameId').value;
 
         // Function to submit the name form
-        document.getElementById("addForm").onsubmit = async function(event) {
+        document.getElementById("addForm").onsubmit = async function (event) {
             event.preventDefault();
             try {
                 const formData = new FormData(this);
                 const response = await fetch("/add", { method: "POST", body: formData });
                 const result = await response.json();
-                document.getElementById("message").innerText = result.message;
-                this.reset(); // Clear the form
-                getTeams(); // Refresh teams display
+
+                if (response.ok) {
+                    document.getElementById("message").innerText = result.message;
+                    this.reset(); // Clear the form
+                    getTeams(); // Refresh teams display
+                } else {
+                    document.getElementById("message").innerText = result.error || "An error occurred while adding participant.";
+                }
             } catch (error) {
                 console.error("Error adding participant:", error);
-                document.getElementById("message").innerText = "Error adding participant";
+                document.getElementById("message").innerText = "Error adding participant.";
             }
         };
 
@@ -130,11 +135,16 @@
             try {
                 const response = await fetch("/sort");
                 const result = await response.json();
-                displayTeams(result.teams);
-                document.getElementById("message").innerText = "Teams sorted successfully!";
+
+                if (response.ok) {
+                    displayTeams(result.teams);
+                    document.getElementById("message").innerText = "Teams sorted successfully!";
+                } else {
+                    document.getElementById("message").innerText = result.error || "An error occurred while sorting teams.";
+                }
             } catch (error) {
                 console.error("Error sorting teams:", error);
-                document.getElementById("message").innerText = "Error sorting teams";
+                document.getElementById("message").innerText = "Error sorting teams.";
             }
         }
 
@@ -142,9 +152,15 @@
             try {
                 const response = await fetch("/get_teams");
                 const result = await response.json();
-                displayTeams(result.teams);
+
+                if (response.ok) {
+                    displayTeams(result.teams);
+                } else {
+                    document.getElementById("message").innerText = result.error || "An error occurred while fetching teams.";
+                }
             } catch (error) {
                 console.error("Error getting teams:", error);
+                document.getElementById("message").innerText = "Error getting teams.";
             }
         }
 

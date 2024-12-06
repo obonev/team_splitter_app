@@ -154,7 +154,13 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    displayTeams(result.teams);
+                    if (result.team_number) {
+                        // Participant: Display only their team
+                        displayTeams(result.teams, result.team_number);
+                    } else {
+                        // Creator: Display all teams
+                        displayTeams(result.teams);
+                    }
                 } else {
                     document.getElementById("message").innerText = result.error || "An error occurred while fetching teams.";
                 }
@@ -164,27 +170,29 @@
             }
         }
 
-        function displayTeams(teams) {
+        function displayTeams(teams, teamNumber = null) {
             const teamsDiv = document.getElementById("teams");
-            teamsDiv.innerHTML = "";  // Clear previous content
+            teamsDiv.innerHTML = ""; // Clear previous content
 
             if (!teams || teams.length === 0) {
+                teamsDiv.innerText = "No teams sorted yet.";
                 return;
             }
 
-            teams.forEach((team, index) => {
+            // If a specific team number is provided (for participants), display only that team
+            if (teamNumber) {
                 const table = document.createElement("table");
                 table.classList.add("team-table");
 
                 const header = document.createElement("tr");
                 const headerCell = document.createElement("td");
                 headerCell.colSpan = "3";
-                headerCell.innerText = `Team ${index + 1}`;
+                headerCell.innerText = `Team ${teamNumber}`;
                 headerCell.classList.add("team-header");
                 header.appendChild(headerCell);
                 table.appendChild(header);
 
-                team.forEach(member => {
+                teams[0].forEach(member => {
                     const row = document.createElement("tr");
                     const cell = document.createElement("td");
                     cell.innerText = member;
@@ -194,7 +202,32 @@
                 });
 
                 teamsDiv.appendChild(table);
-            });
+            } else {
+                // For creators, display all teams
+                teams.forEach((team, index) => {
+                    const table = document.createElement("table");
+                    table.classList.add("team-table");
+
+                    const header = document.createElement("tr");
+                    const headerCell = document.createElement("td");
+                    headerCell.colSpan = "3";
+                    headerCell.innerText = `Team ${index + 1}`;
+                    headerCell.classList.add("team-header");
+                    header.appendChild(headerCell);
+                    table.appendChild(header);
+
+                    team.forEach(member => {
+                        const row = document.createElement("tr");
+                        const cell = document.createElement("td");
+                        cell.innerText = member;
+                        cell.classList.add("team-member");
+                        row.appendChild(cell);
+                        table.appendChild(row);
+                    });
+
+                    teamsDiv.appendChild(table);
+                });
+            }
         }
 
         // Initial teams fetch
@@ -202,7 +235,7 @@
 
         // Automatically refresh teams for non-creators
         if (!isCreator) {
-            setInterval(getTeams, 5000);  // Refresh every 5 seconds
+            setInterval(getTeams, 5000); // Refresh every 5 seconds
         }
     </script>
 </body>

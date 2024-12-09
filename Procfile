@@ -1,0 +1,1 @@
+web: python team_splitter.py
